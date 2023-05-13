@@ -1,6 +1,5 @@
 using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
-using CylinderCharacterController;
 
 public class PlayerCharacter : CylinderCharacterController.CharacterController
 {

@@ -17,6 +17,7 @@ namespace CylinderCharacterController
         private int verticalPointsCount = 3;
         [SerializeField]
         private int horizontalPointCount = 3;
+        [SerializeField]
         private int verticalRings = 2;
         [Space]
         [SerializeField]
@@ -129,6 +130,12 @@ namespace CylinderCharacterController
 
         public int CheckHorizontalCollision(Vector3 velocity)
         {
+            return CheckHorizontalCollision(velocity, Vector3.zero);
+        }
+
+        public int CheckHorizontalCollision(Vector3 velocity, Vector3 displacement)
+        {
+            Vector3 position = transform.position + displacement;
             lastHorizontalRotation = QuaternionExtensions.FromToRotation(Vector3.forward, Vector3.ProjectOnPlane(velocity.normalized, Vector3.up), DefaultDownQuaternion);
             lastHorizontalSpeed = velocity.magnitude + skinDepth;
             horizontalHitCount = 0;
@@ -137,7 +144,7 @@ namespace CylinderCharacterController
             {
                 for (int i = 0; i < horizontalPointCount; i++)
                 {
-                    forwardRays[i, j].origin = transform.position + lastHorizontalRotation * forwardPoints[i, j];
+                    forwardRays[i, j].origin = position + lastHorizontalRotation * forwardPoints[i, j];
                     forwardRays[i, j].direction = velocity.normalized;
                     if (Physics.Raycast(forwardRays[i, j], out lastHorizontalHits[horizontalHitCount], lastHorizontalSpeed, collisionMask))
                     {
@@ -241,12 +248,32 @@ namespace CylinderCharacterController
             {
                 if (!assigned)
                 {
-                    hit = lastVerticalHits[i];
+                    hit = LastVerticalHits[i];
                     assigned = true;
                 }
 
-                if (hit.distance > lastVerticalHits[i].distance)
-                    hit = lastVerticalHits[i];
+                if (hit.distance > LastVerticalHits[i].distance)
+                    hit = LastVerticalHits[i];
+            }
+
+            return hit;
+        }
+
+
+        public RaycastHit GetClosestHorizontalHit()
+        {
+            bool assigned = false;
+            RaycastHit hit = new RaycastHit();
+            for (int i = 0; i < horizontalHitCount; i++)
+            {
+                if (!assigned)
+                {
+                    hit = LastHorizontalHits[i];
+                    assigned = true;
+                }
+
+                if (hit.distance > LastHorizontalHits[i].distance)
+                    hit = LastHorizontalHits[i];
             }
 
             return hit;

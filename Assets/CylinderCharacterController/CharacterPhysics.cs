@@ -5,7 +5,15 @@ namespace CylinderCharacterController
     public class CharacterPhysics : MonoBehaviour
     {
         [SerializeField]
-        private float maxSlopeAngle;
+        bool debug = false;
+        [SerializeField]
+        private float maxSlopeAngle = 75;
+        [SerializeField]
+        private float stepHeight = 0.1f;
+        [SerializeField]
+        private float stepCount = 4;
+        [SerializeField]
+        private float minDifference = 0.001f;
 
         private new CylinderCollider collider;
         private CollisionState ceillingState = new CollisionState();
@@ -49,7 +57,6 @@ namespace CylinderCharacterController
                         translation = CapTranslationToCollision(translation, closestHit);
                         extraTranslation = GetSteepSlopeTranslation(oldTranslation - translation, ceillingState);
                     }
-                    Debug.Log($"Ceiling hit: dist={closestHit.distance}, slope={ceillingState.slopeState}, t={extraTranslation}");
                 }
                 else if (translation.y < 0)
                 {
@@ -100,23 +107,41 @@ namespace CylinderCharacterController
         private void ProcessHorizontalDisplacement(Vector3 horizontalTranslation, Vector3 extraTranslation)
         {
             Vector3 translation = SelectHorizontalTranslation(horizontalTranslation, extraTranslation);
-            int hitCount = collider.CheckHorizontalCollision(translation);
-            if (hitCount > 0)
-            {
-                float distance = translation.magnitude;
-                for (int i = 0; i < hitCount; i++)
-                {
-                    if (distance > collider.LastHorizontalHits[i].distance)
-                    {
-                        distance = collider.LastHorizontalHits[i].distance;
-                        Debug.Log($"Hor Hit with: {collider.LastHorizontalHits[i].collider.name}");
-                    }
-                }
-                translation = distance * translation.normalized;
-            }
+            translation = TryClimbSteps(translation);
 
             Translate(translation.GetHorizontalComponent());
             ProcessVerticalDisplacement(translation.GetVerticalComponent());
+        }
+
+        public Vector3 TryClimbSteps(Vector3 translation)
+        {
+            float distance = translation.magnitude;
+            float subStep = stepHeight / stepCount;
+
+            Vector3 bestHeigth = Vector3.zero;
+            float bestDistance = 0;
+
+            for (int i = 0; i < stepCount; i++)
+            {
+                Vector3 stepHeight = subStep * i * Vector3.up;
+                int hitCount = collider.CheckHorizontalCollision(translation, stepHeight);
+                if (hitCount <= 0)
+                {
+                    bestHeigth = stepHeight;
+                    bestDistance = distance;
+                    break;
+                }
+                else
+                {
+                    var hit = collider.GetClosestHorizontalHit();
+                    if (MoreThan(hit.distance, bestDistance))
+                    {
+                        bestHeigth = stepHeight;
+                        bestDistance = hit.distance;
+                    }
+                }
+            }
+            return translation.normalized * bestDistance + bestHeigth;
         }
 
         private Vector3 SelectHorizontalTranslation(Vector3 horizontalTranslation, Vector3 extraTranslation)
@@ -153,14 +178,22 @@ namespace CylinderCharacterController
             Vector3 axis = Vector3.Cross(verticalTranslation, state.normal);
             Quaternion rotation = Quaternion.AngleAxis(90, axis);
 
-            Debug.Log($"Ceiling hit: VerTrans={verticalTranslation}, state.normal={state.normal}, ");
-
             return rotation * state.normal * -Mathf.Abs(verticalTranslation.y);
         }
 
         private void Translate(Vector3 translation)
         {
             transform.Translate(translation, Space.World);
+        }
+
+        private bool LessThan(float first, float second)
+        {
+            return second - first > minDifference;
+        }
+
+        private bool MoreThan(float first, float second)
+        {
+            return first - second > minDifference;
         }
 
         [System.Serializable]

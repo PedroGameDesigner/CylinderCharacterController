@@ -70,6 +70,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxSlopeAngle: 75
+  stepHeight: 0.2
+  stepCount: 4
 --- !u!114 &5577495950828235363
 MonoBehaviour:
   m_ObjectHideFlags: 0

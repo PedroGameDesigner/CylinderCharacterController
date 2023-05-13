@@ -5098,5 +5098,9 @@ PrefabInstance:
       propertyPath: m_Name
       value: Character
       objectReference: {fileID: 0}
+    - target: {fileID: 5577495950828235366, guid: d17a7367d6d4f5c4b8c08a376c8dbc9e, type: 3}
+      propertyPath: verticalRings
+      value: 3
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d17a7367d6d4f5c4b8c08a376c8dbc9e, type: 3}
