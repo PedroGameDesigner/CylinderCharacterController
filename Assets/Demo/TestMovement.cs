@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using CylinderCharacterController;
 
 public class TestMovement : MonoBehaviour
 {
@@ -9,7 +8,7 @@ public class TestMovement : MonoBehaviour
     [SerializeField] private float rotation = 20f;
     [SerializeField] private float jumpFrequency = 6;
 
-    private CylinderCollider collider;
+    private new CylinderCollider collider;
     Vector3 direction;
     Vector3 verticalDirection;
     RaycastHit[] hits;
