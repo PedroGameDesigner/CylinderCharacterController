@@ -2,29 +2,26 @@ using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 using CylinderCharacterController;
 
-public class PlayerCharacter : MonoBehaviour
+public class PlayerCharacter : CylinderCharacterController.CharacterController
 {
     public bool ascend;
     public Vector3 direction;
 
-    private CharacterPhysics physics;
+    private Vector3 speed;
 
-    private void Awake()
-    {
-        physics = GetComponent<CharacterPhysics>();
-    }
+    public override Vector3 Speed => speed;
 
     // Update is called once per frame
     void Update()
     {
-        Vector3 speed = Vector3.zero;
+        speed = Vector3.zero;
         if (ascend)
             speed += Vector3.up * 6f;
         else
             speed += Vector3.down * 6f;
 
         speed += direction * 4f;
-        physics.Speed = speed;
+
         if (direction.magnitude >= 0.01f)
             transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
     }
