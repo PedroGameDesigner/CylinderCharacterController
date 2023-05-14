@@ -9,7 +9,7 @@ namespace CylinderCharacterController
         [SerializeField]
         private float maxSlopeAngle = 75;
         [SerializeField]
-        private float stepHeight = 0.1f;
+        private float totalStepHeight = 0.2f;
         [SerializeField]
         private float stepCount = 4;
         [SerializeField]
@@ -110,13 +110,15 @@ namespace CylinderCharacterController
             translation = TryClimbSteps(translation);
 
             Translate(translation.GetHorizontalComponent());
-            ProcessVerticalDisplacement(translation.GetVerticalComponent());
+
+            Vector3 verticalTranslation = SelectVerticalTranslation(translation);            
+            ProcessVerticalDisplacement(verticalTranslation);
         }
 
         public Vector3 TryClimbSteps(Vector3 translation)
         {
             float distance = translation.magnitude;
-            float subStep = stepHeight / stepCount;
+            float subStep = totalStepHeight / stepCount;
 
             Vector3 bestHeigth = Vector3.zero;
             float bestDistance = 0;
@@ -157,10 +159,7 @@ namespace CylinderCharacterController
                 case CollisionState.SlopeState.Slope:
                     return GetSlopeTranslation(horizontalTranslation);
                 case CollisionState.SlopeState.StepSlope:
-                    {
-                        //Debug.Break();
-                        return extraTranslation;
-                    }
+                    return extraTranslation;
             }
             return horizontalTranslation;
         }
@@ -179,6 +178,15 @@ namespace CylinderCharacterController
             Quaternion rotation = Quaternion.AngleAxis(90, axis);
 
             return rotation * state.normal * -Mathf.Abs(verticalTranslation.y);
+        }
+
+        private Vector3 SelectVerticalTranslation(Vector3 prevTranslation)
+        {
+            Vector3 verticalTranslation = prevTranslation.GetVerticalComponent();
+            if (!floorState.colliding)
+                return verticalTranslation;
+            else
+                return verticalTranslation.normalized * totalStepHeight;
         }
 
         private void Translate(Vector3 translation)

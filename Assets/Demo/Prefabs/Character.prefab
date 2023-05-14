@@ -54,6 +54,7 @@ MonoBehaviour:
   skinDepth: 0.01
   verticalPointsCount: 4
   horizontalPointCount: 9
+  verticalRings: 2
   collisionMask:
     serializedVersion: 2
     m_Bits: 8
@@ -69,9 +70,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a944726c81a81448b7471bc61ea3201, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  debug: 0
   maxSlopeAngle: 75
-  stepHeight: 0.2
+  totalStepHeight: 0.2
   stepCount: 4
+  minDifference: 0.001
 --- !u!114 &5577495950828235363
 MonoBehaviour:
   m_ObjectHideFlags: 0
