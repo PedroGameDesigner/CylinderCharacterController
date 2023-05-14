@@ -4,16 +4,14 @@ namespace CylinderCharacterController
 {
     public class CharacterPhysics : MonoBehaviour
     {
-        [SerializeField]
-        bool debug = false;
-        [SerializeField]
+        private static float MIN_DIFFERENCE = 0.001f;
+
+        [SerializeField, Tooltip("Maximum angle the character can climb up")]
         private float maxSlopeAngle = 75;
-        [SerializeField]
+        [SerializeField, Tooltip("Maximum height of the steps that the character can climb or descend automatically")]
         private float totalStepHeight = 0.2f;
-        [SerializeField]
+        [SerializeField, Tooltip("Number of steps of the collision calculation.")]
         private float stepCount = 4;
-        [SerializeField]
-        private float minDifference = 0.001f;
 
         private new CylinderCollider collider;
         private CollisionState ceillingState = new CollisionState();
@@ -85,7 +83,6 @@ namespace CylinderCharacterController
             if (angle > maxSlopeAngle) ceillingState.slopeState = CollisionState.SlopeState.StepSlope;
             else if (angle > 0) ceillingState.slopeState = CollisionState.SlopeState.Slope;
             else ceillingState.slopeState = CollisionState.SlopeState.Flat;
-            Debug.Log($"Ceiling hit: normal={ceillingState.normal}, angle={angle}, slope={ceillingState.slopeState}");
         }
 
         private void UpdateFloorState(RaycastHit hit)
@@ -115,7 +112,7 @@ namespace CylinderCharacterController
             ProcessVerticalDisplacement(verticalTranslation);
         }
 
-        public Vector3 TryClimbSteps(Vector3 translation)
+        private Vector3 TryClimbSteps(Vector3 translation)
         {
             float distance = translation.magnitude;
             float subStep = totalStepHeight / stepCount;
@@ -196,12 +193,12 @@ namespace CylinderCharacterController
 
         private bool LessThan(float first, float second)
         {
-            return second - first > minDifference;
+            return second - first > MIN_DIFFERENCE;
         }
 
         private bool MoreThan(float first, float second)
         {
-            return first - second > minDifference;
+            return first - second > MIN_DIFFERENCE;
         }
 
         [System.Serializable]

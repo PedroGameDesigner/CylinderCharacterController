@@ -6,18 +6,18 @@ namespace CylinderCharacterController
     {
         private static Quaternion DefaultDownQuaternion = Quaternion.Euler(0, 180, 0);
 
-        [SerializeField]
+        [SerializeField, Tooltip("Height of the Cylinder in units")]
         private float height;
-        [SerializeField]
+        [SerializeField, Tooltip("Radious of the Cylinder in units")]
         private float radius;
-        [SerializeField]
+        [SerializeField, Tooltip("Distance Between the ray's origins and the border of the collider")]
         private float skinDepth;
         [Space]
-        [SerializeField]
+        [SerializeField, Tooltip("Number of vertical layers of the horizontal ray array")]
         private int verticalPointsCount = 3;
-        [SerializeField]
+        [SerializeField, Tooltip("Number of rays per layer of the horizontal ray array")]
         private int horizontalPointCount = 3;
-        [SerializeField]
+        [SerializeField, Tooltip("Number of rings of the vertical ray array")]
         private int verticalRings = 2;
         [Space]
         [SerializeField]
@@ -128,11 +128,17 @@ namespace CylinderCharacterController
             }
         }
 
+        /// <summary>
+        /// Check for collision by casting rays horizontally
+        /// </summary>
         public int CheckHorizontalCollision(Vector3 velocity)
         {
             return CheckHorizontalCollision(velocity, Vector3.zero);
         }
 
+        /// <summary>
+        /// Check for collision by casting rays horizontally with the center of the collider displaced
+        /// </summary>
         public int CheckHorizontalCollision(Vector3 velocity, Vector3 displacement)
         {
             Vector3 position = transform.position + displacement;
@@ -170,20 +176,32 @@ namespace CylinderCharacterController
             return horizontalHitCount;
         }
 
-        public int CheckVerticalCollision(float speed)
+        /// <summary>
+        /// Check for collision by casting rays Vertically
+        /// </summary>
+        public int CheckVerticalCollision(float distance)
         {
-            if (speed < 0) return CheckVerticalDownCollision(speed);
-            else if (speed > 0) return CheckVerticalUpCollision(speed);
+            return CheckVerticalCollision(distance, Vector3.zero);
+        }
+
+        /// <summary>
+        /// Check for collision by casting rays Vertically with the center of the collider displaced
+        /// </summary>
+        public int CheckVerticalCollision(float distance, Vector3 displacement)
+        {
+            if (distance < 0) return CheckVerticalDownCollision(distance, displacement);
+            else if (distance > 0) return CheckVerticalUpCollision(distance, displacement);
             else return 0;
         }
 
-        public int CheckVerticalDownCollision(float speed)
+        private int CheckVerticalDownCollision(float distance, Vector3 displacement)
         {
-            lastVerticalSpeed = Mathf.Abs(speed) + skinDepth;
+            Vector3 position = transform.position + displacement;
+            lastVerticalSpeed = Mathf.Abs(distance) + skinDepth;
             verticalHitCount = 0;
             for (int i = 0; i < verticalRays.Length; i++)
             {
-                verticalRays[i].origin = transform.position + verticalPoints[i];
+                verticalRays[i].origin = position + verticalPoints[i];
                 verticalRays[i].direction = Vector3.down;
                 if (Physics.Raycast(verticalRays[i], out lastVerticalHits[verticalHitCount], lastVerticalSpeed, collisionMask))
                 {
@@ -208,14 +226,15 @@ namespace CylinderCharacterController
             return verticalHitCount;
         }
 
-        public int CheckVerticalUpCollision(float speed)
+        private int CheckVerticalUpCollision(float speed, Vector3 displacement)
         {
+            Vector3 position = transform.position + displacement;
             lastVerticalSpeed = Mathf.Abs(speed) + skinDepth;
             verticalHitCount = 0;
             Vector3 height = Vector3.up * SkinlessHeight;
             for (int i = 0; i < verticalRays.Length; i++)
             {
-                verticalRays[i].origin = transform.position + verticalPoints[i] + height;
+                verticalRays[i].origin = position + verticalPoints[i] + height;
                 verticalRays[i].direction = Vector3.up;
                 if (Physics.Raycast(verticalRays[i], out lastVerticalHits[verticalHitCount], lastVerticalSpeed, collisionMask))
                 {

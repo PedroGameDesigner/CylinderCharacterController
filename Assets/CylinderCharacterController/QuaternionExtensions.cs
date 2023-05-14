@@ -1,12 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace CylinderCharacterController
 {
     public static class QuaternionExtensions
     {
-        // default value is optional
+        /// <summary>
+        /// Fixed version of Quaternion.FromToRotation()
+        /// </summary>
         static public Quaternion FromToRotation(Vector3 dir1, Vector3 dir2, Quaternion whenOppositeVectors = default(Quaternion))
         {
             float r = 1f + Vector3.Dot(dir1, dir2);
