@@ -180,10 +180,11 @@ namespace CylinderCharacterController
         private Vector3 SelectVerticalTranslation(Vector3 prevTranslation)
         {
             Vector3 verticalTranslation = prevTranslation.GetVerticalComponent();
-            if (!floorState.colliding)
-                return verticalTranslation;
-            else
+            if (floorState.colliding && verticalTranslation.y < 0)
                 return verticalTranslation.normalized * totalStepHeight;
+            else
+                return verticalTranslation;
+
         }
 
         private void Translate(Vector3 translation)
