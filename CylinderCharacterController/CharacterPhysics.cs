@@ -14,23 +14,35 @@ namespace CylinderCharacterController
         private float stepCount = 4;
 
         private new CylinderCollider collider;
-        private CollisionState ceillingState = new CollisionState();
+        private CollisionState ceilingState = new CollisionState();
         private CollisionState floorState = new CollisionState();
 
-        public Vector3 Speed { get; set; }
+        private Vector3 speed;
+        public Vector3 Speed { get => speed; set { speed = value;  } }
+        public bool IsOnFloor => floorState.colliding == true && 
+                                (floorState.slopeState == CollisionState.SlopeState.Flat ||
+                                floorState.slopeState == CollisionState.SlopeState.Slope);
+        public bool IsTouchingCeiling => ceilingState.colliding == true &&
+                                        (ceilingState.slopeState == CollisionState.SlopeState.Flat ||
+                                        ceilingState.slopeState == CollisionState.SlopeState.Slope ||
+                                        ceilingState.slopeState == CollisionState.SlopeState.StepSlope);
 
         private void Awake()
         {
             collider = GetComponent<CylinderCollider>();
         }
 
-        // Update is called once per frame
         void FixedUpdate()
         {
-            float time = Time.fixedDeltaTime;
-            Vector3 translation = Speed * time;
-            Vector3 extraTranslation = ProcessVerticalDisplacement(translation.GetVerticalComponent());
-            ProcessHorizontalDisplacement(translation.GetHorizontalComponent(), extraTranslation);
+            if (Speed.sqrMagnitude > float.Epsilon)
+            {
+                float time = Time.fixedDeltaTime;
+                ceilingState.Reset();
+                floorState.Reset();
+                Vector3 translation = Speed * time;
+                Vector3 extraTranslation = ProcessVerticalDisplacement(translation.GetVerticalComponent());
+                ProcessHorizontalDisplacement(translation.GetHorizontalComponent(), extraTranslation);
+            }
         }
 
         Vector3 ProcessVerticalDisplacement(Vector3 verticalTranslation)
@@ -38,8 +50,6 @@ namespace CylinderCharacterController
             Vector3 translation = verticalTranslation;
             Vector3 extraTranslation = Vector3.zero;
             int hitCount = collider.CheckVerticalCollision(translation.y);
-            ceillingState.Reset();
-            floorState.Reset();
 
             if (hitCount > 0)
             {
@@ -47,13 +57,13 @@ namespace CylinderCharacterController
                 if (translation.y > 0)
                 {
                     UpdateCeilingState(closestHit);
-                    if (ceillingState.slopeState == CollisionState.SlopeState.Flat || ceillingState.slopeState == CollisionState.SlopeState.Slope)
+                    if (ceilingState.slopeState == CollisionState.SlopeState.Flat || ceilingState.slopeState == CollisionState.SlopeState.Slope)
                         translation = CapTranslationToCollision(translation, closestHit);
-                    else if (ceillingState.slopeState == CollisionState.SlopeState.StepSlope)
+                    else if (ceilingState.slopeState == CollisionState.SlopeState.StepSlope)
                     {
                         Vector3 oldTranslation = translation;
                         translation = CapTranslationToCollision(translation, closestHit);
-                        extraTranslation = GetSteepSlopeTranslation(oldTranslation - translation, ceillingState);
+                        extraTranslation = GetSteepSlopeTranslation(oldTranslation - translation, ceilingState);
                     }
                 }
                 else if (translation.y < 0)
@@ -76,21 +86,21 @@ namespace CylinderCharacterController
 
         private void UpdateCeilingState(RaycastHit hit)
         {
-            ceillingState.colliding = true;
-            ceillingState.normal = hit.normal;
+            ceilingState.colliding = true;
+            ceilingState.normal = hit.normal;
             float angle = Vector3.Angle(hit.normal, Vector3.down);
 
-            if (angle > maxSlopeAngle) ceillingState.slopeState = CollisionState.SlopeState.StepSlope;
-            else if (angle > 0) ceillingState.slopeState = CollisionState.SlopeState.Slope;
-            else ceillingState.slopeState = CollisionState.SlopeState.Flat;
+            if (angle > maxSlopeAngle) ceilingState.slopeState = CollisionState.SlopeState.StepSlope;
+            else if (angle > 0) ceilingState.slopeState = CollisionState.SlopeState.Slope;
+            else ceilingState.slopeState = CollisionState.SlopeState.Flat;
         }
 
         private void UpdateFloorState(RaycastHit hit)
         {
             floorState.colliding = true;
             floorState.normal = hit.normal;
-
             float angle = Vector3.Angle(hit.normal, Vector3.up);
+
             if (angle > maxSlopeAngle) floorState.slopeState = CollisionState.SlopeState.StepSlope;
             else if (angle > 0) floorState.slopeState = CollisionState.SlopeState.Slope;
             else floorState.slopeState = CollisionState.SlopeState.Flat;
@@ -149,7 +159,7 @@ namespace CylinderCharacterController
             if (floorState.colliding)
                 state = floorState;
             else
-                state = ceillingState;
+                state = ceilingState;
 
             switch (state.slopeState)
             {

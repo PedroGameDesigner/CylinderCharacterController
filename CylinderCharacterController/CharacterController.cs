@@ -6,16 +6,16 @@ namespace CylinderCharacterController
     {
         protected CharacterPhysics physics;
 
-        public abstract Vector3 Speed { get; }
+        public abstract Vector3 Velocity { get; set; }
 
-        protected void Awake()
+        protected virtual void Awake()
         {
             physics = GetComponent<CharacterPhysics>();
         }
 
         protected virtual void FixedUpdate()
         {
-            physics.Speed = Speed;
+            physics.Speed = Velocity;
         }
     }
 }

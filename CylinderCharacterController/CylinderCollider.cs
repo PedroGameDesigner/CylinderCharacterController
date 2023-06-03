@@ -39,6 +39,8 @@ namespace CylinderCharacterController
         private int verticalHitCount;
 
 
+        public float Radius => radius;
+
         private float SkinlessRadius => radius - skinDepth;
         private float SkinlessHeight => height - skinDepth * 2;
         private int RadiusPointCount => horizontalPointCount * 2 - 2;
