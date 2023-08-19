@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace CylinderCharacterController
@@ -14,6 +15,8 @@ namespace CylinderCharacterController
         private float stepCount = 4;
 
         private new CylinderCollider collider;
+        private List<CylinderCollider> horizontalSubColliders = new List<CylinderCollider>();
+        private List<CylinderCollider> verticalSubColliders = new List<CylinderCollider>();
         private CollisionState ceilingState = new CollisionState();
         private CollisionState floorState = new CollisionState();
 
@@ -49,11 +52,11 @@ namespace CylinderCharacterController
         {
             Vector3 translation = verticalTranslation;
             Vector3 extraTranslation = Vector3.zero;
-            int hitCount = collider.CheckVerticalCollision(translation.y);
+            int hitCount = CheckVerticalCollision(translation.y);
 
             if (hitCount > 0)
             {
-                RaycastHit closestHit = collider.GetClosestVerticalHit();
+                RaycastHit closestHit = GetClosestVerticalHits();
                 if (translation.y > 0)
                 {
                     UpdateCeilingState(closestHit);
@@ -133,7 +136,7 @@ namespace CylinderCharacterController
             for (int i = 0; i < stepCount; i++)
             {
                 Vector3 stepHeight = subStep * i * Vector3.up;
-                int hitCount = collider.CheckHorizontalCollision(translation, stepHeight);
+                int hitCount = CheckHorizontalCollision(translation, stepHeight);
                 if (hitCount <= 0)
                 {
                     bestHeigth = stepHeight;
@@ -142,7 +145,7 @@ namespace CylinderCharacterController
                 }
                 else
                 {
-                    var hit = collider.GetClosestHorizontalHit();
+                    var hit = GetClosestHorizontalHits();
                     if (MoreThan(hit.distance, bestDistance))
                     {
                         bestHeigth = stepHeight;
@@ -195,6 +198,71 @@ namespace CylinderCharacterController
             else
                 return verticalTranslation;
 
+        }
+
+        public void AddHorizontalSubCollider(CylinderCollider collider)
+        {
+            if (!horizontalSubColliders.Contains(collider))
+                horizontalSubColliders.Add(collider);
+        }
+
+        public void RemoveHorizontalSubCollider(CylinderCollider collider)
+        {
+            if (horizontalSubColliders.Contains(collider))
+                horizontalSubColliders.Remove(collider);
+        }
+
+        public void AddVerticalSubCollider(CylinderCollider collider)
+        {
+            if (!verticalSubColliders.Contains(collider))
+                verticalSubColliders.Add(collider);
+        }
+
+        public void RemoveVerticalSubCollider(CylinderCollider collider)
+        {
+            if (verticalSubColliders.Contains(collider))
+                verticalSubColliders.Remove(collider);
+        }
+
+        private int CheckVerticalCollision(float distance)
+        {
+            int count = collider.CheckVerticalCollision(distance);
+            for (int i = 0; i < verticalSubColliders.Count; i++)
+                count += verticalSubColliders[i].CheckVerticalCollision(distance);
+
+            return count;
+        }
+
+        private RaycastHit GetClosestVerticalHits()
+        {
+            RaycastHit hit = collider.GetClosestVerticalHit();
+            for (int i = 0; i < verticalSubColliders.Count; i++)
+            {
+                var newHit = verticalSubColliders[i].GetClosestVerticalHit();
+                hit = newHit.distance < hit.distance ? newHit : hit;
+            }
+
+            return hit;
+        }
+        private int CheckHorizontalCollision(Vector3 velocity, Vector3 displacement)
+        {
+            int count = collider.CheckHorizontalCollision(velocity, displacement);
+            for (int i = 0; i < horizontalSubColliders.Count; i++)
+                count += horizontalSubColliders[i].CheckHorizontalCollision(velocity, displacement);
+
+            return count;
+        }
+
+        private RaycastHit GetClosestHorizontalHits()
+        {
+            RaycastHit hit = collider.GetClosestHorizontalHit();
+            for (int i = 0; i < horizontalSubColliders.Count; i++)
+            {
+                var newHit = horizontalSubColliders[i].GetClosestHorizontalHit();
+                hit = newHit.distance < hit.distance ? newHit : hit;
+            }
+
+            return hit;
         }
 
         private void Translate(Vector3 translation)

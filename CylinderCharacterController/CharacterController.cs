@@ -17,5 +17,14 @@ namespace CylinderCharacterController
         {
             physics.Speed = Velocity;
         }
+        public void AddSubCollider(CylinderCollider collider)
+        {
+            physics.AddHorizontalSubCollider(collider);
+        }
+
+        public void RemoveSubCollider(CylinderCollider collider)
+        {
+            physics.RemoveHorizontalSubCollider(collider);
+        }
     }
 }

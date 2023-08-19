@@ -22,6 +22,11 @@ namespace CylinderCharacterController
         [Space]
         [SerializeField]
         private LayerMask collisionMask;
+        [Space]
+        [SerializeField]
+        private bool showGizmo = true;
+        [SerializeField]
+        private Color gizmoColor = Color.green;
 
         private Vector3[,] shapePoints; //[horizontal][vertical]
 
@@ -38,8 +43,8 @@ namespace CylinderCharacterController
         private float lastVerticalSpeed;
         private int verticalHitCount;
 
-
-        public float Radius => radius;
+        public float Height { get => height; set => height = value; }
+        public float Radius { get => radius; set => radius = value; }
 
         private float SkinlessRadius => radius - skinDepth;
         private float SkinlessHeight => height - skinDepth * 2;
@@ -62,7 +67,7 @@ namespace CylinderCharacterController
             GeneratePointPositions();
         }
 
-        private void GeneratePointPositions()
+        public void GeneratePointPositions()
         {
             GenerateShapePoints();
             GenerateForwardPoints();
@@ -143,6 +148,7 @@ namespace CylinderCharacterController
         /// </summary>
         public int CheckHorizontalCollision(Vector3 velocity, Vector3 displacement)
         {
+            if (!enabled) return 0;
             Vector3 position = transform.position + displacement;
             lastHorizontalRotation = QuaternionExtensions.FromToRotation(Vector3.forward, Vector3.ProjectOnPlane(velocity.normalized, Vector3.up), DefaultDownQuaternion);
             lastHorizontalSpeed = velocity.magnitude + skinDepth;
@@ -191,6 +197,7 @@ namespace CylinderCharacterController
         /// </summary>
         public int CheckVerticalCollision(float distance, Vector3 displacement)
         {
+            if (!enabled) return 0;
             if (distance < 0) return CheckVerticalDownCollision(distance, displacement);
             else if (distance > 0) return CheckVerticalUpCollision(distance, displacement);
             else return 0;
@@ -307,9 +314,10 @@ namespace CylinderCharacterController
 
         private void OnDrawGizmos()
         {
+            if (!showGizmo) return;
             Vector3 position = transform.position;
             //Draw Shape
-            Gizmos.color = Color.green;
+            Gizmos.color = gizmoColor;
             for (int j = 0; j < verticalPointsCount; j++)
             {
                 for (int i = 0; i < RadiusPointCount; i++)
